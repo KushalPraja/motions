@@ -1,91 +1,54 @@
-"use client"
+'use client';
 
-import { useState, useRef, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Slider } from "@/components/ui/slider"
-import { ColorPicker } from "@/components/ui/color-picker"
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { ColorPicker } from "@/components/ui/color-picker";
+import Canvas from "@/components/canvas";
 
 export default function DrawingApp() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [color, setColor] = useState("#000000")
-  const [brushSize, setBrushSize] = useState(5)
-  const [isDrawing, setIsDrawing] = useState(false)
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (canvas) {
-      const ctx = canvas.getContext("2d")
-      if (ctx) {
-        ctx.lineCap = "round"
-        ctx.lineJoin = "round"
-      }
-    }
-  }, [])
-
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    setIsDrawing(true)
-    draw(e)
-  }
-
-  const stopDrawing = () => {
-    setIsDrawing(false)
-    const canvas = canvasRef.current
-    if (canvas) {
-      const ctx = canvas.getContext("2d")
-      if (ctx) {
-        ctx.beginPath()
-      }
-    }
-  }
-
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return
-
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext("2d")
-    if (ctx && canvas) {
-      const rect = canvas.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const y = e.clientY - rect.top
-
-      ctx.strokeStyle = color
-      ctx.lineWidth = brushSize
-      ctx.lineTo(x, y)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-    }
-  }
+  const [color, setColor] = useState("#000000");
+  const [brushSize, setBrushSize] = useState(5);
+  const [panelVisible, setPanelVisible] = useState(false); // To control panel visibility
+  const canvasRef = useRef<any>(null);
 
   const clearCanvas = () => {
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext("2d")
-    if (ctx && canvas) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-    }
-  }
+    canvasRef.current?.clearCanvas();
+  };
 
   return (
-    <div className="flex flex-col items-center space-y-4 p-4">
-      <h1 className="text-2xl font-bold">Drawing App</h1>
-      <div className="flex space-x-4 items-center">
-        <ColorPicker color={color} onChange={setColor} />
-        <div className="w-48">
-          <Slider min={1} max={20} step={1} value={[brushSize]} onValueChange={(value) => setBrushSize(value[0])} />
-        </div>
-        <Button onClick={clearCanvas}>Clear</Button>
-      </div>
-      <canvas
-        ref={canvasRef}
-        width={800}
-        height={600}
-        className="border border-gray-300"
-        onMouseDown={startDrawing}
-        onMouseUp={stopDrawing}
-        onMouseOut={stopDrawing}
-        onMouseMove={draw}
-      />
-    </div>
-  )
-}
+    <div className="relative w-full h-full">
+      {/* Full-screen Canvas */}
+      <Canvas ref={canvasRef} color={color} brushSize={brushSize} />
 
+      {/* Floating Settings Panel */}
+      <div
+        className={`absolute top-20 left-1/2 transform -translate-x-1/2 -translate-y-1 p-4 bg-white shadow-lg z-10 rounded-lg transition-all duration-300 ease-in-out ${panelVisible ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        style={{ width: "300px" }}
+      >
+        <div className="space-y-4">
+          <ColorPicker value={color} onChange={setColor} />
+          <div className="w-48">
+            <Slider
+              min={1}
+              max={20}
+              step={1}
+              value={[brushSize]}
+              onValueChange={(value) => setBrushSize(value[0])}
+            />
+          </div>
+          <Button onClick={clearCanvas}>Clear</Button>
+        </div>
+      </div>
+
+      {/* Toggle Button to Show/Hide the Settings Panel */}
+      <div
+        className="absolute top-4 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gray-800 text-white rounded-full flex justify-center items-center z-20 cursor-pointer"
+        onClick={() => setPanelVisible(!panelVisible)}
+      >
+        {panelVisible ? "△" : "▽"} 
+        
+      </div>
+    </div>
+  );
+}
