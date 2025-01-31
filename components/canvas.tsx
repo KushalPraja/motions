@@ -5,7 +5,6 @@ import { forwardRef, useRef, useImperativeHandle, useEffect, useState } from "re
 interface CanvasProps {
   color: string;
   brushSize: number;
-
 }
 
 const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(({ color, brushSize}, ref) => {
